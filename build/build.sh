@@ -38,6 +38,7 @@ apt-get install -yq --no-install-recommends unzip
 apt-get install -yq --no-install-recommends libpcre3-dev
 apt-get install -yq --no-install-recommends libssl-dev
 apt-get install -yq --no-install-recommends lsb-release
+apt-get install -yq --no-install-recommends curl
 
 # install R
 UBUNTU_VER=`lsb_release -cs`
