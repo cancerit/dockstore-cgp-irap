@@ -14,8 +14,8 @@ RUN adduser --disabled-password --gecos '' ubuntu && chsh -s /bin/bash && mkdir 
 COPY build/build.sh build/
 RUN bash build/build.sh $OPT
 
-COPY scripts/irap.sh /usr/bin/
-RUN chmod a+x /usr/bin/irap.sh
+COPY scripts/irap /usr/bin/
+RUN chmod a+x /usr/bin/irap
 
 USER ubuntu
 WORKDIR /home/ubuntu
