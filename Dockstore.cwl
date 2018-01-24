@@ -23,93 +23,79 @@ requirements:
 
 hints:
   - class: ResourceRequirement
-    coresMin: 1 # works but long, 24 recommended
-    ramMin: 32000
-    outdirMin: 20000
+    coresMin: 1 # works but long, 8 recommended
+    ramMin: 4000
+    outdirMin: 8000
 
 inputs:
-  reference:
+  config:
     type: File
-    doc: "The core reference (fa, fai, dict) as tar.gz"
+    doc: "The configuration file for a analysis."
     inputBinding:
-      prefix: -reference
+      prefix: conf=
       position: 1
-      separate: true
+      separate: false
 
-  annot:
-    type: File
-    doc: "The VAGrENT cache files"
-    inputBinding:
-      prefix: -annot
-      position: 2
-      separate: true
-
-  snv_indel:
-    type: File
-    doc: "Supporting files for SNV and INDEL analysis"
-    inputBinding:
-      prefix: -snv_indel
-      position: 3
-      separate: true
-
-  cnv_sv:
-    type: File
-    doc: "Supporting files for CNV and SV analysis"
-    inputBinding:
-      prefix: -cnv_sv
-      position: 4
-      separate: true
-
-  subcl:
-    type: File
-    doc: "Supporting files for allele counts used by Battenberg Subclonal CNV analysis"
-    inputBinding:
-      prefix: -subcl
-      position: 5
-      separate: true
-
-  tumour:
-    type: File
-    secondaryFiles:
-    - .bai
-    - .bas
-    doc: "Tumour BAM or CRAM file"
-    inputBinding:
-      prefix: -tumour
-      position: 6
-      separate: true
-
-  normal:
-    type: File
-    secondaryFiles:
-    - .bai
-    - .bas
-    doc: "Normal BAM or CRAM file"
-    inputBinding:
-      prefix: -normal
-      position: 7
-      separate: true
-
-  exclude:
+  exp_name:
     type: string
-    doc: "Contigs to block during indel analysis"
+    doc: "experiment name, output folder has the same name"
     inputBinding:
-      prefix: -exclude
-      position: 8
-      separate: true
+      prefix: name=
+      position: 2
+      separate: false
       shellQuote: true
 
   species:
     type: string?
-    doc: "Species to apply if not found in BAM headers"
-    default: ''
+    doc: "species name, default to whatever in the configuration file"
     inputBinding:
-      prefix: -species
-      position: 9
-      separate: true
+      prefix: species=
+      position: 2
+      separate: false
+
+  reference:
+    type: string?
+    doc: "the reference genome file path, default to whatever in the configuration file"
+    inputBinding:
+      prefix: reference=
+      position: 2
+      separate: false
+
+  gtf_file:
+    type: string?
+    doc: "reference GTF file path, default to whatever in the configuration file"
+    inputBinding:
+      prefix: gtf_file=
+      position: 2
+      separate: false
+
+  data_dir:
+    type: string?
+    doc: "input data directory, default to whatever in the configuration file"
+    inputBinding:
+      prefix: data_dir=
+      position: 2
+      separate: false
       shellQuote: true
 
-  assembly:
+  mapper:
+    type: string?
+    doc: "the mapping algorithm to use, default to whatever in the configuration file"
+    inputBinding:
+      prefix: mapper=
+      position: 2
+      separate: false
+
+  max_threads:
+    type: string?
+    doc: "max threads to use for iRAP, default to whatever in the configuration file"
+    default: ''
+    inputBinding:
+      prefix: max_threads=
+      position: 9
+      separate: false
+
+  quantifacation_method======   #####:
     type: string?
     doc: "Assembly to apply if not found in BAM headers"
     default: ''
@@ -118,23 +104,6 @@ inputs:
       position: 10
       separate: true
       shellQuote: true
-
-  skipbb:
-    type: boolean?
-    doc: "Skip Battenberg allele counts"
-    inputBinding:
-      prefix: -skipbb
-      position: 11
-      separate: true
-
-  cavereads:
-    type: int?
-    doc: "Number of reads in a split section for CaVEMan"
-    default: 350000
-    inputBinding:
-      prefix: -cavereads
-      position: 12
-      separate: true
 
 outputs:
   run_params:
