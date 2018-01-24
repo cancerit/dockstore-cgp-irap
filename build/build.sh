@@ -50,8 +50,9 @@ apt-get install -yq --no-install-recommends r-base r-base-dev
 
 apt-get clean
 
-curl -sSL https://github.com/nunofonseca/irap/archive/v0.8.5.p8.tar.gz > irap.tar.gz
-tar xzf irap.tar.gz
-./irap-0.8.5.p8/scripts/irap_install.sh -a $IRAP_OPT -s irap-0.8.5.p8
+curl -sSL https://github.com/byb121/irap/archive/v0.8.5.p9.tar.gz > irap.tar.gz
+mkdir -p irap-install
+tar --strip-components 1 -C irap-install -xzf irap.tar.gz
+./irap-install/scripts/irap_install.sh -a $IRAP_OPT -s irap-0.8.5.p9
 # clean??
-rm -r irap-0.8.5.p8 irap.tar.gz
+rm -r irap-install irap.tar.gz $IRAP_OPT/tmp .cpan*
