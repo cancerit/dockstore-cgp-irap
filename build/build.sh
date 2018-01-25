@@ -6,6 +6,7 @@ IRAP_OPT=$1
 
 # for R installation
 apt-get update
+apt-get install -yq --no-install-recommends apt-utils  # to elimiate the "deconf: delaying package configuration" warnings.
 apt-get install -yq --no-install-recommends lsb-release
 UBUNTU_VER=`lsb_release -cs`
 echo "deb http://cran.rstudio.com/bin/linux/ubuntu $UBUNTU_VER/" >> /etc/apt/sources.list
