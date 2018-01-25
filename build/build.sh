@@ -5,9 +5,9 @@ set -eux
 IRAP_OPT=$1
 
 # for R installation
+apt-get update
 apt-get install -yq --no-install-recommends lsb-release
 UBUNTU_VER=`lsb_release -cs`
-
 echo "deb http://cran.rstudio.com/bin/linux/ubuntu $UBUNTU_VER/" >> /etc/apt/sources.list
 gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
 gpg -a --export E084DAB9 | apt-key add -
