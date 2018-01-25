@@ -7,12 +7,12 @@ LABEL uk.ac.sanger.cgp="Cancer Genome Project, Wellcome Trust Sanger Institute" 
 
 USER root
 
-ENV OPT /opt/irap
+ENV IRAP_OPT /opt/irap
 
 RUN adduser --disabled-password --gecos '' ubuntu && chsh -s /bin/bash && mkdir -p /home/ubuntu
 
 COPY build/build.sh build/
-RUN bash build/build.sh $OPT
+RUN bash build/build.sh $IRAP_OPT
 
 COPY scripts/irap /usr/bin/
 RUN chmod a+x /usr/bin/irap

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-source $OPT/irap_setup.sh
-$OPT/scripts/irap "$@"
+source $IRAP_OPT/irap_setup.sh
+$IRAP_OPT/scripts/irap "$@"
