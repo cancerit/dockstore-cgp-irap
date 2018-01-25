@@ -5,6 +5,7 @@ set -eux
 IRAP_OPT=$1
 
 # for R installation
+apt-get install -yq --no-install-recommends lsb-release
 UBUNTU_VER=`lsb_release -cs`
 
 echo "deb http://cran.rstudio.com/bin/linux/ubuntu $UBUNTU_VER/" >> /etc/apt/sources.list
@@ -44,7 +45,6 @@ apt-get install -yq --no-install-recommends graphviz
 apt-get install -yq --no-install-recommends unzip
 apt-get install -yq --no-install-recommends libpcre3-dev
 apt-get install -yq --no-install-recommends libssl-dev
-apt-get install -yq --no-install-recommends lsb-release
 apt-get install -yq --no-install-recommends curl
 apt-get install -yq --no-install-recommends r-base r-base-dev
 apt-get clean
