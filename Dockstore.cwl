@@ -38,7 +38,7 @@ inputs:
 
   exp_name:
     type: string
-    doc: "experiment name, output folder has the same name"
+    doc: "experiment name, it is used to name the output folder as well"
     inputBinding:
       prefix: name=
       position: 2
@@ -50,7 +50,7 @@ inputs:
     doc: "species name, default to whatever in the configuration file"
     inputBinding:
       prefix: species=
-      position: 2
+      position: 3
       separate: false
 
   reference:
@@ -58,7 +58,7 @@ inputs:
     doc: "the reference genome file path, default to whatever in the configuration file"
     inputBinding:
       prefix: reference=
-      position: 2
+      position: 4
       separate: false
 
   gtf_file:
@@ -66,7 +66,7 @@ inputs:
     doc: "reference GTF file path, default to whatever in the configuration file"
     inputBinding:
       prefix: gtf_file=
-      position: 2
+      position: 5
       separate: false
 
   data_dir:
@@ -74,7 +74,7 @@ inputs:
     doc: "input data directory, default to whatever in the configuration file"
     inputBinding:
       prefix: data_dir=
-      position: 2
+      position: 6
       separate: false
       shellQuote: true
 
@@ -83,48 +83,111 @@ inputs:
     doc: "the mapping algorithm to use, default to whatever in the configuration file"
     inputBinding:
       prefix: mapper=
-      position: 2
+      position: 7
       separate: false
 
   max_threads:
     type: string?
     doc: "max threads to use for iRAP, default to whatever in the configuration file"
-    default: ''
     inputBinding:
       prefix: max_threads=
+      position: 8
+      separate: false
+
+  quant_method:
+    type: string?
+    doc: "quantification method, default to whatever in the configuration file"
+    inputBinding:
+      prefix: quant_method=
       position: 9
       separate: false
 
-  quantifacation_method======   #####:
+  qual_filtering:
     type: string?
-    doc: "Assembly to apply if not found in BAM headers"
-    default: ''
+    doc: "base quality filtering (on|off|none), default to whatever in the configuration file"
     inputBinding:
-      prefix: -assembly
+      prefix: qual_filtering=
       position: 10
-      separate: true
-      shellQuote: true
+      separate: false
+
+  quant_norm_tool:
+    type: string?
+    doc: "normalization of counts (irap|none), default is none or whatever in the configuration file"
+    inputBinding:
+      prefix: quant_norm_tool=
+      position: 11
+      separate: false
+
+  quant_norm_method:
+    type: string?
+    doc: "normalization method to use (rpkm|deseq_nlib|tpm|none), default is none or whatever in the configuration file"
+    inputBinding:
+      prefix: quant_norm_method=
+      position: 12
+      separate: false
+
+  trim_reads:
+    type: string?
+    doc: "Trim all reads to the minimum read size after quality trimming (y|n), default whatever in the configuration file"
+    inputBinding:
+      prefix: trim_reads=
+      position: 13
+      separate: false
+
+  min_read_length:
+    type: string?
+    doc: "Minimum read size/length after trimming, default is 85% of the original length or whatever in the configuration file"
+    inputBinding:
+      prefix: min_read_length=
+      position: 14
+      separate: false
+
+  min_read_quality:
+    type: string?
+    doc: "Minimum base quality accepted, default is 10 or whatever in the configuration file"
+    inputBinding:
+      prefix: min_read_quality=
+      position: 15
+      separate: false
+
+  exon_quant:
+    type: string?
+    doc: "Exon level quantification (y|n), default to whatever in the configuration file"
+    inputBinding:
+      prefix: exon_quant=
+      position: 16
+      separate: false
+
+  transcript_quant:
+    type: string?
+    doc: "transcript level quantification (y|n), default to whatever in the configuration file"
+    inputBinding:
+      prefix: transcript_quant=
+      position: 17
+      separate: false
+
+  fusion_method:
+    type: string?
+    doc: "Fusion gene analysis (fusionmap|none), default to whatever in the configuration file"
+    inputBinding:
+      prefix: fusion_method=
+      position: 18
+      separate: false
+
+  fusion_support_reads:
+    type: string?
+    doc: "minimum number of reads that need to support a fusion, default to whatever in the configuration file"
+    inputBinding:
+      prefix: fusion_support_reads=
+      position: 19
+      separate: false
 
 outputs:
-  run_params:
-    type: File
+  result_data:
+    type:
+      type: array
+      items: File
     outputBinding:
-      glob: run.params
+      glob: "$(inputs.exp_name)/*"
 
-  result_archive:
-    type: File
-    outputBinding:
-      glob: WGS_*_vs_*.result.tar.gz
-
-  # named like this so can be converted to a secondaryFile set once supported by dockstore cli
-  timings:
-    type: File
-    outputBinding:
-      glob: WGS_*_vs_*.timings.tar.gz
-
-  global_time:
-    type: File
-    outputBinding:
-      glob: WGS_*_vs_*.time
-
-baseCommand: ["/opt/wtsi-cgp/bin/ds-wrapper.pl"]
+baseCommand: ["irap"]
