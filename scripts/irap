@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 source $IRAP_OPT/irap_setup.sh
-$IRAP_OPT/scripts/irap "$@"
+$IRAP_OPT/scripts/irap "$@" && find -type l -delete  # delete symbolic links, as some time they are pointing to non-existing files
