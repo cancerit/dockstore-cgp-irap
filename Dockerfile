@@ -15,7 +15,9 @@ COPY build/build.sh build/
 RUN bash build/build.sh $IRAP_OPT
 
 COPY scripts/irap /usr/bin/
+COPY scripts/irap_wrapper.sh /usr/bin/
 RUN chmod a+x /usr/bin/irap
+RUN chmod a+x /usr/bin/irap_wrapper.sh
 
 USER ubuntu
 WORKDIR /home/ubuntu
