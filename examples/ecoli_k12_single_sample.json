@@ -16,22 +16,6 @@
     {
       "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933984/SRR933984.fastq.gz",
       "class": "File"
-    },
-    {
-      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933985/SRR933985.fastq.gz",
-      "class": "File"
-    },
-    {
-      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933989/SRR933989.fastq.gz",
-      "class": "File"
-    },
-    {
-      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933990/SRR933990.fastq.gz",
-      "class": "File"
-    },
-    {
-      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933991/SRR933991.fastq.gz",
-      "class": "File"
     }
   ],
   "exp_name": "ecoli_k12_dockstore_test",
@@ -42,5 +26,8 @@
   "result_data":{
     "path":"/home/ubuntu/dstore_test/out/",
     "class":"Directory"
-  }
+  },
+  "irap_conf_string":[
+    "max_threads=8"
+  ]
 }
