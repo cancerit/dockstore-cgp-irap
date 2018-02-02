@@ -1,0 +1,46 @@
+{
+  "reference":{
+    "path":"ftp://ftp.ensemblgenomes.org/pub/release-19/bacteria/fasta/bacteria_22_collection/escherichia_coli_str_k_12_substr_mg1655/dna/Escherichia_coli_str_k_12_substr_mg1655.GCA_000005845.1.19.dna.toplevel.fa.gz",
+    "class":"File"
+  },
+  "gtf":{
+    "path":"data/reference/Escherichia_coli_str_k_12_substr_mg1655.GCA_000005845.1.19.gtf.anno.tar.gz",
+    "class":"File"
+  },
+  "species": "ecoli_k12_test",
+  "raw_read_file": [
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933983/SRR933983.fastq.gz",
+      "class": "File"
+    },
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933984/SRR933984.fastq.gz",
+      "class": "File"
+    },
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933985/SRR933985.fastq.gz",
+      "class": "File"
+    },
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933989/SRR933989.fastq.gz",
+      "class": "File"
+    },
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933990/SRR933990.fastq.gz",
+      "class": "File"
+    },
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933991/SRR933991.fastq.gz",
+      "class": "File"
+    }
+  ],
+  "exp_name": "ecoli_k12_dockstore_test",
+  "config":{
+    "path": "data/ecoli_k12.single_sample_test.conf",
+    "class": "File"
+  },
+  "result_data":{
+    "path":"/home/ubuntu/dstore_test/out/",
+    "class":"Directory"
+  }
+}
