@@ -47,7 +47,6 @@ apt-get install -yq --no-install-recommends libpcre3-dev
 apt-get install -yq --no-install-recommends libssl-dev
 apt-get install -yq --no-install-recommends curl
 apt-get install -yq --no-install-recommends r-base r-base-dev
-apt-get clean
 
 curl -sSL https://github.com/byb121/irap/archive/v0.8.5.p9.tar.gz > irap.tar.gz
 mkdir -p irap-install
@@ -55,3 +54,6 @@ tar --strip-components 1 -C irap-install -xzf irap.tar.gz
 ./irap-install/scripts/irap_install.sh -a $IRAP_OPT -s irap-install
 # clean
 rm -r irap-install irap.tar.gz $IRAP_OPT/tmp /root/.cpan*
+apt-get remove -yq curl wget
+apt-get clean
+rm -rf /var/lib/apt/lists/*
