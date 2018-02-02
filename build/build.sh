@@ -54,6 +54,5 @@ tar --strip-components 1 -C irap-install -xzf irap.tar.gz
 ./irap-install/scripts/irap_install.sh -a $IRAP_OPT -s irap-install
 # clean
 rm -r irap-install irap.tar.gz $IRAP_OPT/tmp /root/.cpan*
-apt-get remove -yq curl wget
 apt-get clean
 rm -rf /var/lib/apt/lists/*
