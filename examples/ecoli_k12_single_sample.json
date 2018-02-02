@@ -4,7 +4,7 @@
     "class":"File"
   },
   "gtf":{
-    "path":"data/reference/Escherichia_coli_str_k_12_substr_mg1655.GCA_000005845.1.19.gtf.anno.tar.gz",
+    "path":"ftp://ftp.ensemblgenomes.org/pub/release-19/bacteria//gtf/bacteria_22_collection/escherichia_coli_str_k_12_substr_mg1655/Escherichia_coli_str_k_12_substr_mg1655.GCA_000005845.1.19.gtf.gz",
     "class":"File"
   },
   "species": "ecoli_k12_test",
@@ -20,15 +20,16 @@
   ],
   "exp_name": "ecoli_k12_dockstore_test",
   "config":{
-    "path": "data/ecoli_k12.single_sample_test.conf",
+    "path": "examples/ecoli_k12.single_sample_test.conf",
     "class": "File"
   },
   "result_data":{
-    "path":"/home/ubuntu/dstore_test/out/",
+    "path":"/tmp/dstore_test/out/",
     "class":"Directory"
   },
   "irap_conf_string":[
     "max_threads=8",
-    "mapper=hisat2"
+    "mapper=tophat2",
+    "quant_method=htseq1"
   ]
 }
