@@ -20,7 +20,7 @@
   ],
   "exp_name": "ecoli_k12_dockstore_test",
   "config":{
-    "path": "examples/ecoli_k12.single_sample_test.conf",
+    "path": "ecoli_k12_single_sample.conf",
     "class": "File"
   },
   "result_data":{
