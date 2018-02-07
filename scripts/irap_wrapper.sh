@@ -163,3 +163,6 @@ echo "cleaning symbolic links"
 find -type l -delete  # delete symbolic links, as some time they are pointing to non-existing files
 echo "gzipping fastq files"
 find "$EXP_NAME" -name '*.fastq' -print0 | xargs -0 -I {} bash -c 'echo "gzipping:" {}; gzip {}'
+
+# tar ball the whole output directory as Dosckstore can not upload whole directory to S3 for now. s3cmd-plugin version 0.0.7
+tar -zcvf "$EXP_NAME".tar.gz "$EXP_NAME" && md5sum "$EXP_NAME".tar.gz > "$EXP_NAME".tar.gz.md5
