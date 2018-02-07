@@ -24,8 +24,12 @@
     "class": "File"
   },
   "result_data":{
-    "path":"/tmp/dstore_test/out/",
-    "class":"Directory"
+    "path":"/tmp/dstore_test/out/result.tar.gz",
+    "class":"File"
+  },
+  "result_md5":{
+    "path":"/tmp/dstore_test/out/result.tar.gz.md5",
+    "class":"File"
   },
   "irap_conf_string":[
     "max_threads=8",
