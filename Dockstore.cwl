@@ -111,8 +111,13 @@ inputs:
 
 outputs:
   result_data:
-    type: Directory
+    type: File
     outputBinding:
-      glob: $(inputs.exp_name)
+      glob: $(inputs.exp_name).tar.gz
+
+  result_md5:
+    type: File
+    outputBinding:
+      glob: $(inputs.exp_name).tar.gz.md5
 
 baseCommand: ["irap_wrapper.sh"]
