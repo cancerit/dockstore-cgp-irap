@@ -22,5 +22,4 @@ RUN chmod a+x /usr/bin/irap_wrapper.sh
 USER ubuntu
 WORKDIR /home/ubuntu
 
-#ENTRYPOINT ["irap"]
 CMD ["/bin/bash"]
