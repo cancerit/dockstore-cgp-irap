@@ -156,14 +156,16 @@ fi
 # start irap
 set +u  # IRAP_PARA could be un-defined
 REF_FILE_NAME="$(basename "$REF")"
-irap "conf=$CONFIG_FILE" "species=$SPECIES" "reference=$REF_FILE_NAME" "gtf_file=$GTF_FILE" "name=$EXP_NAME" "data_dir=$DATA_DIR_NAME" "${IRAP_PARA[@]}"
+irap "conf=$CONFIG_FILE" "species=$SPECIES" "reference=$REF_FILE_NAME" "gtf_file=$GTF_FILE" "name=$EXP_NAME" "data_dir=$DATA_DIR_NAME" "${IRAP_PARA[@]}" &> $EXP_NAME.log
 
 set -u
 # following lines were added for Dockstore
 echo "cleaning symbolic links"
 find -type l -delete  # delete symbolic links, as some time they are pointing to non-existing files
-echo "gzipping fastq files"
-find "$EXP_NAME" -name '*.fastq' -print0 | xargs -0 -I {} bash -c 'echo "gzipping:" {}; gzip {}'
+echo "deleting fastq files"
+find "$EXP_NAME" -name '*.fastq' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
+echo "deleting bam sorted by name"
+find "$EXP_NAME" -name '*hits.byname.bam' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
 
 # tar ball the whole output directory as Dosckstore can not upload whole directory to S3 for now. s3cmd-plugin version 0.0.7
 tar -zcvf "$EXP_NAME.tar.gz" "$EXP_NAME" && md5sum "$EXP_NAME.tar.gz" > "$EXP_NAME.tar.gz.md5"

@@ -31,7 +31,11 @@
     "path":"/tmp/dstore_test/out/result.tar.gz.md5",
     "class":"File"
   },
-  "irap_conf_string":[
+   "result_log":{
+    "path":"/tmp/dstore_test/out/result.log",
+    "class":"File"
+  },
+ "irap_conf_string":[
     "max_threads=8",
     "mapper=tophat2",
     "quant_method=htseq1"
