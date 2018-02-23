@@ -120,4 +120,9 @@ outputs:
     outputBinding:
       glob: $(inputs.exp_name).tar.gz.md5
 
+  result_log:
+    type: File
+    outputBinding:
+      glob: $(inputs.exp_name).log
+
 baseCommand: ["irap_wrapper.sh"]
