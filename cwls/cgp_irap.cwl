@@ -19,7 +19,7 @@ dct:creator:
 
 requirements:
   - class: DockerRequirement
-    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.0.3"
+    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.0"
 
 hints:
   - class: ResourceRequirement
@@ -119,5 +119,10 @@ outputs:
     type: File
     outputBinding:
       glob: $(inputs.exp_name).tar.gz.md5
+
+  result_log:
+    type: File
+    outputBinding:
+      glob: $(inputs.exp_name).log
 
 baseCommand: ["irap_wrapper.sh"]
