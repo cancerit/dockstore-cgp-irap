@@ -8,6 +8,7 @@ sudo: false
   # - docker
 
 install:
+ - gem install mdl
  - virtualenv -p python venv
  - source venv/bin/activate
  - pip install html5 cwltool
@@ -15,6 +16,8 @@ install:
 
 script:
  - set -e
+ - echo 'Validate Markdown file(s)'
+ - mdl README.md
  - echo 'Validate CWL file(s)'
  - cwltool --validate cwls/cgp_irap.cwl
  # - docker images | grep -c dockstore-cgp-irap
