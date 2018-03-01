@@ -17,7 +17,7 @@ install:
 script:
  - set -e
  - echo 'Validate Markdown file(s)'
- - mdl README.md
+ - mdl -r ~MD013 README.md  # ignore line too long rule
  - echo 'Validate CWL file(s)'
  - cwltool --validate cwls/cgp_irap.cwl
  # - docker images | grep -c dockstore-cgp-irap
