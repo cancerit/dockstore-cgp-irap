@@ -4,11 +4,17 @@ notifications:
 
 sudo: false
 
-services:
-  - docker
+# services:
+  # - docker
 
 install:
- - docker build -t dockstore-cgp-irap .
+ - virtualenv -p python venv
+ - source venv/bin/activate
+ - pip install html5 cwltool
+ # - docker build -t dockstore-cgp-irap .  # it takes too long to run, and travis.org will give a time out error
 
 script:
- - docker images | grep -c dockstore-cgp-irap
+ - set -e
+ - echo 'Validate CWL file(s)'
+ - cwltool --validate cwls/cgp_irap.cwl
+ # - docker images | grep -c dockstore-cgp-irap
