@@ -156,7 +156,7 @@ fi
 # start irap
 set +u  # IRAP_PARA could be un-defined
 REF_FILE_NAME="$(basename "$REF")"
-irap "conf=$CONFIG_FILE" "species=$SPECIES" "reference=$REF_FILE_NAME" "gtf_file=$GTF_FILE" "name=$EXP_NAME" "data_dir=$DATA_DIR_NAME" "${IRAP_PARA[@]}" &> $EXP_NAME.log
+irap "conf=$CONFIG_FILE" "species=$SPECIES" "reference=$REF_FILE_NAME" "gtf_file=$GTF_FILE" "name=$EXP_NAME" "data_dir=$DATA_DIR_NAME" "${IRAP_PARA[@]}" 1> >(tee -a $EXP_NAME.log) 2> >(tee -a $EXP_NAME.err >&2)
 
 set -u
 # following lines were added for Dockstore
@@ -169,4 +169,3 @@ find "$EXP_NAME" -name '*hits.byname.bam' -print0 | xargs -0 -I {} bash -c 'echo
 
 # tar ball the whole output directory as Dosckstore can not upload whole directory to S3 for now. s3cmd-plugin version 0.0.7
 tar -zcvf "$EXP_NAME.tar.gz" "$EXP_NAME" && md5sum "$EXP_NAME.tar.gz" > "$EXP_NAME.tar.gz.md5"
-
