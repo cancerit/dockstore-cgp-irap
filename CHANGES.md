@@ -1,3 +1,6 @@
+0.1.3
+* fixed build script
+
 0.1.2
 * freads is changed to use proper TMPDIR instead of shared memory /dev/shm to load GTF, but this is not a stable fix.
 
