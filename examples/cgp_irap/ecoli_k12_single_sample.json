@@ -1,0 +1,43 @@
+{
+  "reference":{
+    "path":"ftp://ftp.ensemblgenomes.org/pub/release-19/bacteria/fasta/bacteria_22_collection/escherichia_coli_str_k_12_substr_mg1655/dna/Escherichia_coli_str_k_12_substr_mg1655.GCA_000005845.1.19.dna.toplevel.fa.gz",
+    "class":"File"
+  },
+  "gtf":{
+    "path":"ftp://ftp.ensemblgenomes.org/pub/release-19/bacteria//gtf/bacteria_22_collection/escherichia_coli_str_k_12_substr_mg1655/Escherichia_coli_str_k_12_substr_mg1655.GCA_000005845.1.19.gtf.gz",
+    "class":"File"
+  },
+  "species": "ecoli_k12_test",
+  "raw_read_file": [
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933983/SRR933983.fastq.gz",
+      "class": "File"
+    },
+    {
+      "path": "ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR933/SRR933984/SRR933984.fastq.gz",
+      "class": "File"
+    }
+  ],
+  "exp_name": "ecoli_k12_dockstore_test",
+  "config":{
+    "path": "ecoli_k12_single_sample.conf",
+    "class": "File"
+  },
+  "result_data":{
+    "path":"/tmp/dstore_test/out/result.tar.gz",
+    "class":"File"
+  },
+  "result_md5":{
+    "path":"/tmp/dstore_test/out/result.tar.gz.md5",
+    "class":"File"
+  },
+   "result_log":{
+    "path":"/tmp/dstore_test/out/result.log",
+    "class":"File"
+  },
+ "irap_conf_string":[
+    "max_threads=8",
+    "mapper=tophat2",
+    "quant_method=htseq1"
+  ]
+}

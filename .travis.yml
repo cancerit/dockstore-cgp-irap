@@ -1,0 +1,23 @@
+notifications:
+  slack: wtsi-cgpit:ptUMR1tkNyZJYd9TpGoss8WR
+  email: false
+
+sudo: false
+
+# services:
+  # - docker
+
+install:
+ - gem install mdl
+ - virtualenv -p python venv
+ - source venv/bin/activate
+ - pip install html5 cwltool
+ # - docker build -t dockstore-cgp-irap .  # it takes too long to run, and travis.org will give a time out error
+
+script:
+ - set -e
+ - echo 'Validate Markdown file(s)'
+ - mdl -r ~MD013 README.md  # ignore line too long rule
+ - echo 'Validate CWL file(s)'
+ - cwltool --validate cwls/cgp_irap.cwl
+ # - docker images | grep -c dockstore-cgp-irap
