@@ -58,5 +58,6 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 # install latest version of R package data.table, so that iRAP (an R script of iRAP) won't use /dev/shm
+set +u
 source $IRAP_OPT/irap_setup.sh
 Rscript -e 'remove.packages("data.table"); install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table", quiet=TRUE)'
