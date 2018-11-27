@@ -1,5 +1,16 @@
 #!/usr/bin/env cwl-runner
 
+$namespaces:
+  dct: http://purl.org/dc/terms/
+  foaf: http://xmlns.com/foaf/0.1/
+  s: http://schema.org/
+
+$schemas:
+- http://schema.org/docs/schema_org_rdfa.html
+- http://dublincore.org/2012/06/14/dcterms.rdf
+- http://xmlns.com/foaf/spec/20140114.rdf
+
+
 class: CommandLineTool
 
 id: "cgp-irap"
@@ -19,7 +30,7 @@ dct:creator:
 
 requirements:
   - class: DockerRequirement
-    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.4"
+    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.5"
 
 hints:
   - class: ResourceRequirement
@@ -126,3 +137,11 @@ outputs:
       glob: $(inputs.exp_name).log
 
 baseCommand: ["irap_wrapper.sh"]
+
+s:codeRepository: https://github.com/cancerit/dockstore-cgp-irap 
+s:license: https://spdx.org/licenses/AGPL-3.0-only
+s:author:
+  - class: s:Person
+    s:identifier: https://orcid.org/0000-0002-7638-2899 
+    s:email: mailto:cgphelp@sanger.ac.uk
+    s:name: Shriram Bhosle
