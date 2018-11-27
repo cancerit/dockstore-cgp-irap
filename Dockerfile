@@ -1,5 +1,5 @@
-FROM ubuntu:16.04
 
+FROM nunofonseca/irap_ubuntu:v1.0.1
 MAINTAINER yx2@sanger.ac.uk
 
 LABEL uk.ac.sanger.cgp="Cancer Genome Project, Wellcome Trust Sanger Institute" \
@@ -11,8 +11,18 @@ ENV IRAP_OPT /opt/irap
 
 RUN adduser --disabled-password --gecos '' ubuntu && chsh -s /bin/bash && mkdir -p /home/ubuntu
 
-COPY build/build.sh build/
-RUN bash build/build.sh $IRAP_OPT
+
+ENV IRAP_OPT /opt/irap
+
+# for R installation
+
+RUN apt-get install -yq --no-install-recommends libtbb-dev
+RUN apt-get install -yq --no-install-recommends libtbb2
+RUN apt-get clean
+
+# install latest version of R package data.table, so that iRAP (an R script of iRAP) won't use /dev/shm
+RUN set +u
+CMD Rscript -e 'remove.packages("data.table"); install.packages(c("data.table","optparse"), quiet=TRUE)'
 
 COPY scripts/irap /usr/bin/
 COPY scripts/irap_wrapper.sh /usr/bin/
