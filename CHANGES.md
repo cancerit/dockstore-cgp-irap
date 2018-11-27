@@ -1,4 +1,6 @@
 
+0.1.5
+* Updated CWL metadata, erquired to publish tool
 0.1.4
 * remove buid script
 * added tagged docker image from Nuno
