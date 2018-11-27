@@ -1,3 +1,8 @@
+
+0.1.4
+* remove buid script
+* added tagged docker image from Nuno
+
 0.1.3
 * fixed build script
 
