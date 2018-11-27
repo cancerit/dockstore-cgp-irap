@@ -42,13 +42,15 @@ apt-get install -yq --no-install-recommends bison
 apt-get install -yq --no-install-recommends poxml
 apt-get install -yq --no-install-recommends wget
 apt-get install -yq --no-install-recommends graphviz
+apt-get install -yq --no-install-recommends libtbb-dev
+apt-get install -yq --no-install-recommends libtbb2
 apt-get install -yq --no-install-recommends unzip
 apt-get install -yq --no-install-recommends libpcre3-dev
 apt-get install -yq --no-install-recommends libssl-dev
 apt-get install -yq --no-install-recommends curl
 apt-get install -yq --no-install-recommends r-base r-base-dev
 
-curl -sSL https://github.com/byb121/irap/archive/v0.8.5.p9.tar.gz > irap.tar.gz
+curl -sSL https://github.com/nunofonseca/irap/archive/v1.0.1.tar.gz > irap.tar.gz
 mkdir -p irap-install
 tar --strip-components 1 -C irap-install -xzf irap.tar.gz
 ./irap-install/scripts/irap_install.sh -a $IRAP_OPT -s irap-install
@@ -60,4 +62,4 @@ rm -rf /var/lib/apt/lists/*
 # install latest version of R package data.table, so that iRAP (an R script of iRAP) won't use /dev/shm
 set +u
 source $IRAP_OPT/irap_setup.sh
-Rscript -e 'remove.packages("data.table"); install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table", quiet=TRUE)'
+Rscript -e 'remove.packages("data.table"); install.packages(c("data.table","optparse"), quiet=TRUE)'
