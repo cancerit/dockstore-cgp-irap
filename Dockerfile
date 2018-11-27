@@ -7,14 +7,10 @@ LABEL uk.ac.sanger.cgp="Cancer Genome Project, Wellcome Trust Sanger Institute" 
 
 USER root
 
-ENV IRAP_OPT /opt/irap
-
 RUN adduser --disabled-password --gecos '' ubuntu && chsh -s /bin/bash && mkdir -p /home/ubuntu
 
 
 ENV IRAP_OPT /opt/irap
-
-# for R installation
 
 RUN apt-get install -yq --no-install-recommends libtbb-dev
 RUN apt-get install -yq --no-install-recommends libtbb2
