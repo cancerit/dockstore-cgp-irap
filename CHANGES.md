@@ -1,4 +1,6 @@
 
+0.1.6
+* Added irap-version 1.0.6b
 0.1.5
 * Updated CWL metadata, erquired to publish tool
 0.1.4
