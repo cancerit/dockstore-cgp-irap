@@ -30,7 +30,7 @@ dct:creator:
 
 requirements:
   - class: DockerRequirement
-    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.5"
+    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.6"
 
 hints:
   - class: ResourceRequirement

@@ -1,5 +1,5 @@
 
-FROM nunofonseca/irap_ubuntu:v1.0.1
+FROM nunofonseca/irap_ubuntu:v1.0.6b
 MAINTAINER yx2@sanger.ac.uk
 
 LABEL uk.ac.sanger.cgp="Cancer Genome Project, Wellcome Trust Sanger Institute" \
@@ -14,6 +14,8 @@ ENV IRAP_OPT /opt/irap
 
 RUN apt-get install -yq --no-install-recommends libtbb-dev
 RUN apt-get install -yq --no-install-recommends libtbb2
+RUN apt-get install -yq --no-install-recommends bc
+
 RUN apt-get clean
 
 # install latest version of R package data.table, so that iRAP (an R script of iRAP) won't use /dev/shm
