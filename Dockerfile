@@ -1,5 +1,4 @@
-
-FROM nunofonseca/irap_ubuntu:v1.0.6b
+FROM sgbdocker/firstrepo:0.1.3
 MAINTAINER yx2@sanger.ac.uk
 
 LABEL uk.ac.sanger.cgp="Cancer Genome Project, Wellcome Trust Sanger Institute" \
