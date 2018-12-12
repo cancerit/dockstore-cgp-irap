@@ -19,9 +19,11 @@ function prepare_input_dir {
   local ref_file="$1"; shift
   local gtf="$1"; shift
   local species="$1"; shift
+  local exp_name="$1"; shift
   local raw_read_files=("$@")
   local irap_ref_dir="$data_dir_name/reference/$species"
   local irap_raw_data_dir="$data_dir_name/raw_data/$species"
+  local irap_raw_bam_dir="$data_dir_name/raw_data/${exp_name}_${species}"
   # the ref dir
   mkdir -p "$irap_ref_dir"
   ref_file_name="$(basename "$ref_file")"
@@ -36,10 +38,13 @@ function prepare_input_dir {
 
   # the raw file dir
   mkdir -p "$irap_raw_data_dir"
+  mkdir -p "$irap_raw_bam_dir"
   for raw_read_file in "${raw_read_files[@]}"
   do
     raw_read_file_name="$(basename "$raw_read_file")"
     ln -s "$(realpath "$raw_read_file")" "$irap_raw_data_dir/$raw_read_file_name"
+    # required when optiton atlas_run is selected
+    ln -s "$(realpath "$raw_read_file")" "$irap_raw_bam_dir/$raw_read_file_name"
   done
 }
 
@@ -127,7 +132,7 @@ set -xue
 
 DATA_DIR_NAME="irap_data"
 
-prepare_input_dir "$DATA_DIR_NAME" "$REF" "$GTF" "$SPECIES" "${RAW_READ_FILES[@]}"
+prepare_input_dir "$DATA_DIR_NAME" "$REF" "$GTF" "$SPECIES"  "$EXP_NAME"  "${RAW_READ_FILES[@]}"
 
 # set up contamination db
 set +u
