@@ -1,5 +1,7 @@
 ##CHANGES
 
+### 0.1.8
+* corrected Dockerfile
 ### 0.1.7 
 * revrted to docker image 0.1.3 with updated wrapper for atlas_run option
 ### 0.1.6 
