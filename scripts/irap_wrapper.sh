@@ -25,6 +25,9 @@ function prepare_input_dir {
   local irap_raw_data_dir="$data_dir_name/raw_data/$species"
   local irap_raw_bam_dir="$data_dir_name/raw_data/${exp_name}_${species}"
   # the ref dir
+  mkdir -p "$exp_name/irap_qc"
+  # added to avoid irap exit bug
+  touch "$exp_name/irap_qc/qc.tsv"
   mkdir -p "$irap_ref_dir"
   ref_file_name="$(basename "$ref_file")"
   ln -s "$(realpath "$ref_file")" "$irap_ref_dir/$ref_file_name"
@@ -43,6 +46,8 @@ function prepare_input_dir {
   do
     raw_read_file_name="$(basename "$raw_read_file")"
     ln -s "$(realpath "$raw_read_file")" "$irap_raw_data_dir/$raw_read_file_name"
+    # required path by recent version
+    ln -s "$(realpath "$raw_read_file")" "$exp_name/$raw_read_file_name"
     # required when optiton atlas_run is selected
     ln -s "$(realpath "$raw_read_file")" "$irap_raw_bam_dir/$raw_read_file_name"
   done
@@ -174,3 +179,6 @@ find "$EXP_NAME" -name '*hits.byname.bam' -print0 | xargs -0 -I {} bash -c 'echo
 
 # tar ball the whole output directory as Dosckstore can not upload whole directory to S3 for now. s3cmd-plugin version 0.0.7
 tar -zcvf "$EXP_NAME.tar.gz" "$EXP_NAME" && md5sum "$EXP_NAME.tar.gz" > "$EXP_NAME.tar.gz.md5"
+# delete the output after data is archived otherwise data remains on instance if same instance is used for another wr job
+echo "cleaning the instance"
+/bin/rm -rf "$EXP_NAME"
