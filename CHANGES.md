@@ -2,6 +2,7 @@
 
 ### 0.1.9
 * modified wrapper to cleanup instance after archiving to avoid no space letf issue when same instance is used by WR
+* added few custom amendements to qc_stats and wrapper script
 ### 0.1.8
 * corrected Dockerfile
 ### 0.1.7 

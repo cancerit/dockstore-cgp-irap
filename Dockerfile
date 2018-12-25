@@ -1,5 +1,4 @@
-FROM docker pull nunofonseca/irap_ubuntu:v1.0.6b
-#FROM sgbdocker/firstrepo:0.1.3
+FROM  nunofonseca/irap_ubuntu:v1.0.6b
 MAINTAINER yx2@sanger.ac.uk
 
 LABEL uk.ac.sanger.cgp="Cancer Genome Project, Wellcome Trust Sanger Institute" \
@@ -25,8 +24,10 @@ CMD Rscript -e 'remove.packages("data.table"); install.packages(c("data.table","
 COPY scripts/irap /usr/bin/
 COPY scripts/irap_wrapper.sh /usr/bin/
 COPY scripts/irap_merge_tsv.sh /opt/irap/scripts/
+COPY scripts/irap_qc_stats.mk /opt/irap/aux/mk/
 RUN chmod a+x /usr/bin/irap
 RUN chmod a+x /usr/bin/irap_wrapper.sh
+RUN chmod a+x /opt/irap/scripts/irap_merge_tsv.sh
 
 USER ubuntu
 WORKDIR /home/ubuntu
