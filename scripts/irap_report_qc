@@ -1,0 +1,528 @@
+#!/usr/bin/env Rscript
+#; -*- mode: R;-*-
+# =========================================================
+#
+# This file is part of iRAP.
+#
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with iRAP.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# =========================================================
+# generate one HTML page with QC report
+###########################################################
+suppressPackageStartupMessages(library("optparse"))
+
+#
+IRAP.DIR <- Sys.getenv(c("IRAP_DIR"))
+if ( IRAP.DIR == "" ) {
+  cat("ERROR: environment variable IRAP_DIR is not set\n")
+  q(status=1)
+}
+#
+source(paste(IRAP.DIR,"aux/R","irap_utils.R",sep="/"))
+pdebug.enabled <- FALSE
+html.temp <- get.path2template("qc_report")
+#######################
+usage <- "irap_report_qc --conf conf.file [options]"
+option_list <- list(
+  make_option(c("-c", "--conf"), type="character",dest="conf.file",help="iRAP's experiment configuration file"),
+  make_option(c("--css"), type="character",default="irap.css",help="Path to the irap.css file relative to the location of the produced html file [default: %default"),
+  make_option(c("-o", "--out_dir"), type="character", dest="out_dir",help="path to iRAP's report directory (output)"),
+  make_option(c("-q", "--qc_dir"), type="character", dest="qc_dir",help="path to iRAP's toplevel qc directory"),
+  make_option(c("--debug"),action="store_true",dest="debug",default=FALSE,help="Debug mode"),
+  make_option(c("--lib_info"), type="character", dest="lib_info",default=NULL,help="path to the .info file (if used in iRAP)"),
+  make_option(c("-t","--html"),type="character",dest="html_template",default=html.temp,help="HTML template file [default: %default]")
+)
+
+multiple.options = list()
+filenames <- c("conf.file","html_template","lib_info") ;#filenames that must exist (if defined)
+
+# check multiple options values
+mandatory <- c("conf.file","qc_dir","out_dir","html_template")
+opt <- myParseArgs(usage = usage, option_list=option_list,filenames.exist=filenames,multiple.options=multiple.options,mandatory=mandatory)
+
+irap.css <- opt$css
+
+pdebug.enabled <- opt$debug
+pinfo("Parameters parsed.")
+
+
+###########################
+# Functions
+###########################
+
+# 
+raw.summary.dataframe <- function(conf,qc.sum,fastqc.sum) {
+
+    vv <- c("Lib","File", "length","qual","strand","ins","sd", "Quality","Contamination","Ns","Unpaired","Passed","reads")
+
+    ## In some cases (irap_single_lib) there may be no se/pe in the conf file
+    pe <- conf.get.value(conf,"pe")
+    se <- conf.get.value(conf,"se")
+    libs1.se <- c()
+    libs1.pe <- c()
+    qc.enabled <- conf.is.qc.enabled(conf)
+
+    colnames(qc.sum) <- c("Orig.file","Pass0","Pass1","Pass2","Pass3","Pass4")
+    filt.stats <- qc.sum
+    filt.stats[,vv] <- NA
+    ## add lib name to qc.sum
+    if ( length(se)==0 && length(pe)==0 ) {
+        perror("Unable to continue, no libraries found")
+        q(status=1)
+    }
+    if ( length(se)>0) {
+        libs1.se <- gsub("\\.(fastq|fq|cram|bam).*","",unlist(lapply(se,conf.get.value,conf=conf)))
+        names(libs1.se) <- se
+    }
+    if ( length(pe)>0) {
+        xx <- lapply(pe,conf.get.value,conf=conf)
+        names(xx) <- pe
+        ##
+        names(xx) <- paste(names(xx),"_",sep="")    
+        x <- unlist(xx)
+        xx <- gsub("\\.(fastq|fq|cram|bam).*","",x=x,perl=TRUE)
+        libs1.pe <- xx
+        ## handle cram/bam    
+        cram.bam <- grepl("\\.(cram|bam)$",x)
+        if (sum(cram.bam)>0 ) {
+            pinfo("Workaround for CRAM/BAMs")
+            libs1.pe.a <- libs1.pe[cram.bam]
+            libs1.pe.b <- libs1.pe[!cram.bam]
+            libs1.pe.a2 <- c(gsub("$","_1",libs1.pe.a),gsub("$","_2",libs1.pe.a))
+            names(libs1.pe.a2) <- c(gsub("$","1",names(libs1.pe.a)),gsub("$","2",names(libs1.pe.a)))
+            libs1.pe <- c(libs1.pe.b,libs1.pe.a2)
+        }
+    }
+    libs1 <- c(libs1.se,libs1.pe)
+    names(libs1) <- c(se,names(libs1.pe))
+    
+    #pinfo("libs1=",head(sort(libs1)))
+    #print(head(sort(libs1)))
+    orig2lib <- names(libs1)
+    names(orig2lib) <- libs1
+    ## two cases
+    ## qc=report => file name==libname
+    ## qc=on     => file_name==orig_.*
+    if ( sum(grepl("/orig_",filt.stats$Orig.file))==0 ) {
+        pinfo("qc=report")
+        vvv <- unlist(lapply(as.character(filt.stats$Orig.file),basename))
+        filt.stats$Lib <- vvv
+        filt.stats$Filt.file <- paste(as.character(filt.stats$Orig.file),".f",sep="")
+    } else  {
+        pinfo("qc=filtering")
+        ##        
+        pinfo('filt_stat ',rownames(filt.stats)) 
+        vvv <- gsub(".*orig_","",filt.stats$Orig.file)
+        rownames(filt.stats) <- vvv
+        ## some libs may have been skipped
+        orig2lib <- orig2lib[!is.na(orig2lib)]
+        ##
+        ## commented:sb43
+        #filt.stats$Lib <- orig2lib[rownames(filt.stats)]
+        ## added:sb43
+        filt.stats$Lib <- orig2lib
+        ## fail if NAs => missing libs
+        if ( sum(is.na(filt.stats$Lib)) > 0 ) {
+            pinfo("Unable to continue, libraries in the configuration file do not match the data.")
+        ## modified to warning :sb43
+            q(status=0)
+        }
+        ## filtered file
+        filt.stats$Filt.file <- sapply(as.character(filt.stats$Orig.file),FUN=dirname)
+        filt.stats$Filt.file <- paste(filt.stats$Filt.file,"/",filt.stats$Lib,".f",sep="")
+        filt.stats$Orig.file <- paste(filt.stats$Orig.file,".pre",sep="")
+        print(filt.stats)
+    }
+
+    filt.stats$ofile_pref<- vvv
+    ## update rownames
+    rownames(filt.stats) <-  filt.stats$Lib
+    ## match the two matrices
+    i <- intersect(rownames(fastqc.sum),rownames(filt.stats))
+    if ( length(i) == 0 ) {
+        perror("WIP")
+        q(status=1)
+        ## qc=off
+        ## try to use the file column without the .f suffix
+        nl <- gsub(".f$","",as.character(df$File))
+        i <- intersect(rownames(fastqc.sum),nl)
+        if ( length(i) == 0 ) {
+            perror("No libs found in ",fastqc.sum)
+            q(status=1)
+        }
+        fastqc.sum <- fastqc.sum[i,,drop=FALSE]
+        nl <- rownames(df)
+        names(nl) <- gsub(".f$","",df$File)
+                                        # rename
+        rownames(fastqc.sum) <- nl[rownames(fastqc.sum)[rownames(fastqc.sum) %in% i]]
+        ##print(head(fastqc.sum))
+                                        #print(rownames(fastqc.sum))
+        i <- intersect(rownames(fastqc.sum),rownames(df))
+    }
+    df <- cbind(filt.stats[i,,drop=FALSE],fastqc.sum[i,,drop=FALSE])
+    ## fill the columns based on filt.stats
+    df$reads <- df$Pass0
+    df$Quality <- abs(my.factor2numeric(df$"Total Sequences")-df$Pass1)
+    df$Contamination <- abs(df$Pass1-df$Pass2)
+    df$Ns <- df$Pass2-df$Pass3
+    df$Unpaired <- df$Pass3-df$Pass4
+    df$Passed <- df$Pass4
+
+    get.lib.info <- function(df,libs,conf,is.pe=TRUE) {
+        ## fill the matrix with the missing values
+        i <- nrow(df)+1
+        for (lib in libs ) {
+            pinfo(lib,":",is.pe)
+            linfo <- as.numeric(c(conf.get.value(conf,paste(lib,"_rs",sep="")),
+                                  conf.get.value(conf,paste(lib,"_qual",sep="")),
+                                  conf.get.value(conf,paste(lib,"_strand",sep="")),
+                                  conf.get.value(conf,paste(lib,"_ins",sep="")),
+                                  conf.get.value(conf,paste(lib,"_sd",sep=""))
+                                  ))
+            if ( !is.pe ) { linfo <- append(linfo,c(NA,NA)) }
+            names(linfo) <- c("length","qual","strand","ins","sd")
+            if ( is.pe) {
+                df[paste0(lib,"_1"),names(linfo)] <- linfo
+                df[paste0(lib,"_2"),names(linfo)] <- linfo
+            } else {
+                df[lib,names(linfo)] <- linfo
+            }
+        }
+        return(df)
+    }    
+    df <- get.lib.info(df,se,conf,is.pe=FALSE)
+    df <- get.lib.info(df,pe,conf,is.pe=TRUE)
+    return(df)
+}
+
+# add median, sd columns to the table (it is only applicable to some rows)
+qc.expand.table <- function(dft,conf) {
+    
+    ## generate the matrix/table with the links to fastqc reports  
+    ##dir.name <- paste(conf.get.value(conf,"report.dir"),"riq/",sep="")
+    ## add a column with the median
+    dft.median <- rep("",nrow(dft))
+    dft.sd <- rep("",nrow(dft))
+    dft.mean <- rep("",nrow(dft))
+    names(dft.median) <- rownames(dft)
+    names(dft.mean) <- rownames(dft)
+    names(dft.sd) <- rownames(dft)
+    cols.sel <- c("Passed","Unpaired","Ns","Contamination","Quality","reads","length","GC","Pass1","Pass2","Pass3","Pass4")
+    if ( sum(!cols.sel %in% rownames(dft))>0 ) {
+        perror("Columns ",paste(cols.sel[!cols.sel%in%rownames(dft)],sep=",")," not found in matrix")
+        print(rownames(dft))
+        print(cols.sel)
+        q(status=1)
+    }
+    for ( n in cols.sel ) {
+        dft.median[n] <- round(median(as.numeric(dft[n,]),na.rm=T),2)
+        dft.mean[n] <- round(mean(as.numeric(dft[n,]),na.rm=T),2)
+        dft.sd[n] <- round(sd(as.numeric(dft[n,]),na.rm=T),2)
+    }
+    dft.nlibs <- ncol(dft)
+    dft <- cbind(dft,dft.median,dft.mean,dft.sd)
+    colnames(dft)[dft.nlibs+1] <- "Median"
+    colnames(dft)[dft.nlibs+2] <- "Mean"
+    colnames(dft)[dft.nlibs+3] <- "SD"
+    ## reorder
+    dft <- dft[,c("Median","Mean","SD",colnames(dft)[seq(1,dft.nlibs)])]
+    return(dft)
+}
+
+quality.details.matrix <- function(bp.data,conf) {
+
+    ## each column should correspond to a lib
+    data <- bp.data
+    ## extra row
+    data<-rbind(data,rep("",ncol(data)))
+    rownames(data)[length(rownames(data))]<-"Initial data (quality report)"
+    data <- rbind(data,"Passed (quality report)"=rep("",ncol(data)))
+    ## another row with the links for the qual plots
+    data<-rbind(data,rep("",ncol(data)))
+    rownames(data)[length(rownames(data))]<-"Quality plots"
+    pe <- append(sub("$","_1",conf.get.value(conf,"pe")),
+                 sub("$","_2",conf.get.value(conf,"pe")))
+    se <- conf.get.value(conf,"se")
+    libs <- append(se,pe)
+
+    id <- 1
+    for ( lib in libs ) {
+        ## Handle the special case (filename) of Paired-end libraries
+        filtered.file <- bp.data["Filt.file",lib]
+        orig.file <- bp.data["Orig.file",lib]
+        if (lib %in% pe) {
+            path2orig.fastqc.report <- path2qual.report(dirname(orig.file),basename(orig.file))
+        } else {
+            path2orig.fastqc.report <- path2qual.report(dirname(orig.file),basename(orig.file))            
+        }
+        ## add a link to the the detailed report
+        data["Initial data (quality report)",lib] <- paste("<a class='download' href='",path2orig.fastqc.report["index"],"' target='_top'>QR</a>",sep="")
+        width <- 450
+        visible.text <- "+"
+        if ( bp.data["Orig.file",lib]!=bp.data["Filt.file",lib] ) {
+            ## filtered
+            if (lib %in% pe) {
+                path2filt.fastqc.report <- path2qual.report(dirname(filtered.file),basename(filtered.file))
+            } else {
+                path2filt.fastqc.report <- path2qual.report(dirname(filtered.file),basename(filtered.file))            
+            }
+            data["Passed (quality report)",lib] <- paste(" <a class='download' href='",path2filt.fastqc.report["index"],"' target='_top'>","QR</a>",sep="")
+            ## Add a div to show the plots before and after filtering
+            hidden.text <- paste("<table class='plots' style='text-align: center'><tr><td>Raw data</td><td>Filtered</td></tr>",
+                                 "<tr><td><img  width='",width,"' data-src='",path2orig.fastqc.report["seq.quality"],"' alt='Quality plot'></td><td><img  width='",width,"' data-src='",path2filt.fastqc.report["seq.quality"],"' alt='Quality plot'></td></tr>",
+                                 "<tr><td><img width='",width,"' data-src='",path2orig.fastqc.report["base.quality"],"' alt='Per base quality plot'></td><td><img width='",width,"' data-src='",path2filt.fastqc.report["base.quality"],"' alt='Per base quality plot'></td></tr>",
+                                 "</table>",sep="")
+            libs.qced <- libs.qced +1
+        } else {
+            # not filtered
+            data["Passed (quality report)",lib]  <- data["Initial data (quality report)",lib] 
+            path2filt.fastqc.report <- path2orig.fastqc.report
+            hidden.text <- paste("<table class='plots' style='text-align: center'><tr><td>Raw data</td></tr>",
+                                 "<tr><td><img  width='",width,"' data-src='",path2orig.fastqc.report["seq.quality"],"' alt='Quality plot'></td></td></tr>",
+                                 "<tr><td><img width='",width,"' data-src='",path2orig.fastqc.report["base.quality"],"' alt='Per base quality plot'></td></tr>",
+                                 "</table>",sep="")
+
+            
+        }        
+        html  <- HTML.toogle.div(visible.text,hidden.text)        
+        data["Quality plots",lib] <- html
+
+        id <- id+1
+    }
+    return(data)
+}
+
+path2qual.report <- function(dir.name,file.prefix) {
+  root.dir <- dir.name
+  filt.qual.dir <- paste(root.dir,"/",file.prefix,"_fastqc/",sep="")
+  filt.qual.zip <- paste(root.dir,"/",file.prefix,".fastqc.zip",sep="")
+  filt.qual.index <- paste(filt.qual.dir,"fastqc_report.html",sep="")
+  filt.qual.plot.base.quality <- paste(filt.qual.dir,"Images/per_base_quality.png",sep="")
+  filt.qual.plot.seq.quality<- paste(filt.qual.dir,"Images/per_sequence_quality.png",sep="")
+  # check if dir exists
+  if (!file.exists(filt.qual.dir)) {
+    pinfo("Report directory ",filt.qual.dir," not found. Looking for zip file...")
+    if (!file.exists(filt.qual.zip)) {
+      pmissing(filt.qual.zip)
+      return(NULL)
+    }
+    # unzip file
+    unzip.cmd <- paste("unzip -q -o -d ",root.dir," ",filt.qual.zip,sep="")
+    system(unzip.cmd)
+    if (!file.exists(filt.qual.dir)) {
+      pwarning("Unzip file ",filt.qual.zip," apparently failed.")
+      return(NULL)
+    }
+  }
+  files <- c(filt.qual.index,filt.qual.plot.base.quality,filt.qual.plot.seq.quality)
+  names(files) <- c("index","base.quality","seq.quality")
+  return(files)
+}
+
+###########################
+# load configuration file
+pinfo("conf_file=",opt$conf.file)
+#
+conf <- load.configuration.file(opt$conf.file,lib.info=opt$lib_info)
+
+#
+pinfo("Configuration file ",opt$conf.file," loaded.")
+
+pdebug.save.state("irap_report_qc","p0")
+
+qual_filt <- conf.get.value(conf,"qual_filtering")
+pinfo("Quality filtering:",conf.is.qc.enabled(conf))
+########################################################
+## QC filtering may be on or off
+libs.qced <- 0
+
+
+qc.dir <- opt$qc_dir
+report.dir <- opt$out_dir
+report.dir <- paste(sub("/$","",report.dir),"/",sep="")
+conf <- conf.set.value("report.dir",report.dir,conf)
+# set the report directory (overwrite toplevel.dir)
+conf <- conf.set.value("toplevel.dir",dirname(report.dir),conf)
+pdebug.save.state("irap_report_qc","p1")
+
+############################
+## file may be empty...
+fastqc.sum.tsv <- paste(qc.dir,"/fastq_qc_report.tsv",sep="")
+if ( ! file.exists(fastqc.sum.tsv ) ) {
+  perror("File ",fastqc.sum.tsv," not found")
+  q(status=1)
+}
+pinfo("Loading ",fastqc.sum.tsv)
+fastqc.sum <- read.tsv(fastqc.sum.tsv)
+pinfo("Loading ",fastqc.sum.tsv," done.")
+
+if ( is.null(fastqc.sum) ) {
+    pinfo("Nothing to do, qc was probably set to off hence there are no QC stats")
+    q(status=0)
+}
+
+new.cols <- gsub(".f$","",gsub("_2.f$","_2",gsub("_1.f$","_1",colnames(fastqc.sum))))
+
+orig.cols <- colnames(fastqc.sum)
+colnames(fastqc.sum) <- new.cols
+rownames(fastqc.sum) <- as.character(fastqc.sum[,1])
+fastqc.sum <- fastqc.sum[,-1,drop=FALSE]
+fastqc.sum <- t(fastqc.sum)
+###
+qc.sum.file <- paste(qc.dir,"/qc_report.csv",sep="")
+if ( ! file.exists(qc.sum.file ) ) {
+  perror("File ",qc.sum.file," not found")
+  q(status=1)
+}
+pinfo("Loading ",qc.sum.file)
+qc.sum <- read.table(qc.sum.file,sep=",")
+pinfo("Loading ",qc.sum.file," done.")
+
+###################################
+## In some cases (irap_single_lib) there may be no se/pe in the conf file
+## Fix this...
+## pe <- conf.get.value(conf,"pe")
+## se <- conf.get.value(conf,"se")
+
+## if ( is.null(pe) && is.null(se) ) {
+##     pwarning("No se/pe values in conf. file - assuming single lib run")
+##     xx <- gsub("(_[12])*\\.f$","",basename(orig.cols[2]))
+##     print(xx)
+##     if ( grepl("_[12]\\.f$",orig.cols[2]) ) {
+##         conf <- conf.set.value("pe",c(xx),conf)
+##     } else {
+##         conf <- conf.set.value("se",c(xx),conf)
+##     }
+## }
+
+############################
+## reads info
+df <- raw.summary.dataframe(conf,qc.sum,fastqc.sum)
+
+############################
+pdebug.save.state("irap_report_qc","p1a")
+pinfo("Expanding table..")
+etdf <- qc.expand.table(t(df),conf)
+pdebug.save.state("irap_report_qc","p2")
+
+
+############################
+## pprint names
+x <- rownames(etdf)
+names(x) <- x
+
+x["qual"] <- "Quality encoding"
+x["strand"] <- "Strand"
+x["ins"] <- "Insert Size"
+x["sd"] <- "Insert Size sd"
+x["Pass1"] <- "Reads passed quality filter"
+x["Pass2"] <- "Reads passed contamination filter"
+x["Pass3"] <- "Reads passed uncalled bases filter"
+x["Pass4"] <- "Reads passed unmated reads filter"
+x["Quality"] <- "Reads failed quality filter"
+x["Contamination"] <- "Reads failed contamination filter"
+x["Ns"] <- "Reads failed uncalled bases filter"
+x["Unpaired"] <- "Reads failed unmated reads filter"
+x["GC"] <- "GC%"
+x["reads"] <- "Reads"
+x["length"] <- "Read Length"
+x["Basic Statistics"] <- "fastqc:status"
+## FASTQC
+for (f in c("Per base sequence quality","Per sequence quality scores","Per base sequence content","Per sequence GC content","Per base N content","Sequence Length Distribution","Sequence Duplication Levels","Overrepresented sequences","Adapter Content","Kmer Content"))
+    x[f] <- paste0("fastqc:",f)
+
+## common
+rows.sel <- intersect(names(x),rownames(etdf))
+#length(rows.sel)
+#x <- x[rows.sel]
+etdf <- etdf[rows.sel,,drop=FALSE]
+rownames(etdf) <- as.character(x[rows.sel])
+## reorder the rows
+logic.order <- c("Lib",
+                 "Read Length","Quality encoding","Strand","Insert Size","Insert Size sd",
+                 "Reads",
+                 "Passed",
+                 "fastqc:status",
+                 "GC%",
+                 "Reads passed quality filter","Reads passed contamination filter","Reads passed uncalled bases filter","Reads passed unmated reads filter",
+                 "Reads failed quality filter","Reads failed contamination filter","Reads failed uncalled bases filter","Reads failed unmated reads filter",
+                 "fastqc:Per base sequence quality","fastqc:Per sequence quality scores","fastqc:Per base sequence content","fastqc:Per sequence GC content","fastqc:Per base N content","fastqc:Sequence Length Distribution","fastqc:Sequence Duplication Levels","fastqc:Overrepresented sequences","fastqc:Adapter Content","fastqc:Kmer Content",
+                 "Orig.file","Filt.file","ofile_pref"
+                 )
+
+#print(logic.order[!logic.order%in%rownames(etdf)])
+etdf <- etdf[logic.order[logic.order%in%rownames(etdf)],,drop=FALSE]
+
+############################
+# save stats file
+df2save <- t(etdf)
+df2save[,"Lib"] <- rownames(df2save)
+write.tsv(df2save,file=paste(report.dir,"qc.tsv",sep=""))
+pinfo("Saved qc.tsv file")
+qc.tsv.download.files <- c("qc.tsv")
+names(qc.tsv.download.files) <- "TSV"
+qc.tsv.download.html <- html.download.bar(qc.tsv.download.files)
+pdebug.save.state("irap_report_qc","p3")
+###########################
+table1.rows <- c("Passed","Reads failed quality filter","Reads failed contamination filter","Reads failed uncalled bases filter", "Reads failed unmated reads filter")
+# 
+table1 <- quality.details.matrix(etdf,conf)
+out.table1 <- table1[table1.rows,,drop=FALSE]
+out.table1 <- gsub(conf.get.value(conf,"report.dir"),"",out.table1)
+pdebug.save.state("irap_report_qc","p4")
+
+####################################
+## pprint fastqc results (green, orange, red)
+set.cell.bg <- function(v,cols) {
+    return(paste0("<div style=\"border: 0px; padding: 0px; text-align: center; background-color: ",cols[v],";\">",v,"</div>"))
+}
+fastqc.cols <- c("green","orange","red")
+names(fastqc.cols) <- c("PASS","WARN","FAIL")
+rows.to.change <- grep("^fastqc:",rownames(table1),value=TRUE)
+
+table1[rows.to.change,] <- apply(table1[rows.to.change,,drop=FALSE],c(1,2),set.cell.bg,fastqc.cols)
+
+########################
+## exclude a few samples
+
+if ( libs.qced ) {
+    pinfo("QC off")
+    to.exclude <- grep("Reads (failed|passed)",rownames(table1),value=TRUE)
+    to.exclude <- c("Passed (quality report)",to.exclude)
+    table1 <- table1[!rownames(table1)%in%to.exclude,,drop=FALSE]
+}
+## QC filtering
+df <- etdf[c("Passed","Reads failed quality filter","Reads failed contamination filter","Reads failed uncalled bases filter", "Reads failed unmated reads filter"),,drop=FALSE]
+df <- apply(df,c(1,2),as.numeric)
+rownames(df) <- gsub(" reads","",gsub(" filter","",gsub("Reads failed ","",rownames(df))))
+df <- t(df)
+
+library(brew)
+####################################
+out.dir <- report.dir
+out.html.file <- paste(out.dir,"/qc.html",sep="")
+pinfo("Generating ",out.dir,"/qc.html")
+brew.wrapper(opt$html_template,out.html.file)
+warnings()
+pinfo("All done.")
+q()
+
+IRAP.DIR <- Sys.getenv(c("IRAP_DIR"))
+if ( IRAP.DIR == "" ) {
+  IRAP.DIR="/home/nf/Research/Projects/WIP/EREAP/irap"
+  Sys.setenv(IRAP_DIR=IRAP.DIR)
+}
+setwd("~/Research/Projects/WIP/EREAP/irap_tests")
+

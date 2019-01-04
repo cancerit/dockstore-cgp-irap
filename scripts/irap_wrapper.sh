@@ -25,15 +25,18 @@ function prepare_input_dir {
   local irap_raw_data_dir="$data_dir_name/raw_data/$species"
   local irap_raw_bam_dir="$data_dir_name/raw_data/${exp_name}_${species}"
   # the ref dir
+  mkdir -p "$exp_name/irap_qc"
+  # added to avoid irap exit bug
+  touch "$exp_name/irap_qc/qc.tsv"
   mkdir -p "$irap_ref_dir"
   ref_file_name="$(basename "$ref_file")"
-  ln -s "$(realpath "$ref_file")" "$irap_ref_dir/$ref_file_name"
+  ln -sf "$(realpath "$ref_file")" "$irap_ref_dir/$ref_file_name"
   if tar tf "$gtf" 2> /dev/null 1>&2
   then
     tar xzf "$gtf" --directory "$irap_ref_dir/"
   else
     gtf_file_name="$(basename "$gtf")"
-    ln -s "$(realpath "$gtf")" "$irap_ref_dir/$gtf_file_name"
+    ln -sf "$(realpath "$gtf")" "$irap_ref_dir/$gtf_file_name"
   fi
 
   # the raw file dir
@@ -42,9 +45,11 @@ function prepare_input_dir {
   for raw_read_file in "${raw_read_files[@]}"
   do
     raw_read_file_name="$(basename "$raw_read_file")"
-    ln -s "$(realpath "$raw_read_file")" "$irap_raw_data_dir/$raw_read_file_name"
+    ln -sf "$(realpath "$raw_read_file")" "$irap_raw_data_dir/$raw_read_file_name"
+    # required path by recent version
+    ln -sf "$(realpath "$raw_read_file")" "$exp_name/$raw_read_file_name"
     # required when optiton atlas_run is selected
-    ln -s "$(realpath "$raw_read_file")" "$irap_raw_bam_dir/$raw_read_file_name"
+    ln -sf "$(realpath "$raw_read_file")" "$irap_raw_bam_dir/$raw_read_file_name"
   done
 }
 
@@ -161,7 +166,20 @@ fi
 # start irap
 set +u  # IRAP_PARA could be un-defined
 REF_FILE_NAME="$(basename "$REF")"
-irap "conf=$CONFIG_FILE" "species=$SPECIES" "reference=$REF_FILE_NAME" "gtf_file=$GTF_FILE" "name=$EXP_NAME" "data_dir=$DATA_DIR_NAME" "${IRAP_PARA[@]}" 1> >(tee -a $EXP_NAME.log) 2> >(tee -a $EXP_NAME.err >&2)
+
+cat >$CONFIG_FILE <<EOF
+species=$SPECIES
+reference=$REF_FILE_NAME
+gtf_file=$GTF_FILE
+name=$EXP_NAME
+data_dir=$DATA_DIR_NAME
+EOF
+
+for opt_prm in "${IRAP_PARA[@]}"; do
+    echo $opt_prm >> $CONFIG_FILE
+done
+
+xvfb-run irap conf=$CONFIG_FILE 1> >(tee -a $EXP_NAME.log) 2> >(tee -a $EXP_NAME.err >&2)
 
 set -u
 # following lines were added for Dockstore
@@ -169,8 +187,16 @@ echo "cleaning symbolic links"
 find -type l -delete  # delete symbolic links, as some time they are pointing to non-existing files
 echo "deleting fastq files"
 find "$EXP_NAME" -name '*.fastq' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
+echo "deleting fastq.gz files"
+find "$EXP_NAME" -name '*.fastq.gz' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
+echo "deleting tmp bam files"
+find "$EXP_NAME" -name '*.tmp.bam' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
 echo "deleting bam sorted by name"
 find "$EXP_NAME" -name '*hits.byname.bam' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
-
+echo "Copy log files"
+cp $EXP_NAME.log $EXP_NAME.err $EXP_NAME
 # tar ball the whole output directory as Dosckstore can not upload whole directory to S3 for now. s3cmd-plugin version 0.0.7
 tar -zcvf "$EXP_NAME.tar.gz" "$EXP_NAME" && md5sum "$EXP_NAME.tar.gz" > "$EXP_NAME.tar.gz.md5"
+# delete the output after data is archived otherwise data remains on instance if same instance is used for another wr job
+echo "cleaning the instance"
+/bin/rm -rf "$EXP_NAME"
