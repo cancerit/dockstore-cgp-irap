@@ -187,9 +187,14 @@ echo "cleaning symbolic links"
 find -type l -delete  # delete symbolic links, as some time they are pointing to non-existing files
 echo "deleting fastq files"
 find "$EXP_NAME" -name '*.fastq' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
+echo "deleting fastq.gz files"
+find "$EXP_NAME" -name '*.fastq.gz' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
+echo "deleting tmp bam files"
+find "$EXP_NAME" -name '*.tmp.bam' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
 echo "deleting bam sorted by name"
 find "$EXP_NAME" -name '*hits.byname.bam' -print0 | xargs -0 -I {} bash -c 'echo "deleting:" {}; /bin/rm {}'
-
+echo "Copy log files"
+cp $EXP_NAME.log $EXP_NAME.err $EXP_NAME
 # tar ball the whole output directory as Dosckstore can not upload whole directory to S3 for now. s3cmd-plugin version 0.0.7
 tar -zcvf "$EXP_NAME.tar.gz" "$EXP_NAME" && md5sum "$EXP_NAME.tar.gz" > "$EXP_NAME.tar.gz.md5"
 # delete the output after data is archived otherwise data remains on instance if same instance is used for another wr job
