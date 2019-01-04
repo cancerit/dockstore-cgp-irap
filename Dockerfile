@@ -24,6 +24,7 @@ CMD Rscript -e 'remove.packages("data.table"); install.packages(c("data.table","
 COPY scripts/irap /usr/bin/
 COPY scripts/irap_wrapper.sh /usr/bin/
 COPY scripts/irap_merge_tsv.sh /opt/irap/scripts/
+COPY scripts/irap_qc_stats.mk /opt/irap/aux/mk/
 COPY scripts/irap_report_qc /opt/irap/scripts/
 RUN chmod a+x /usr/bin/irap
 RUN chmod a+x /usr/bin/irap_wrapper.sh

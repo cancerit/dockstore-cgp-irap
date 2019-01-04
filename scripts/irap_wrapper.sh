@@ -30,13 +30,13 @@ function prepare_input_dir {
   touch "$exp_name/irap_qc/qc.tsv"
   mkdir -p "$irap_ref_dir"
   ref_file_name="$(basename "$ref_file")"
-  ln -s "$(realpath "$ref_file")" "$irap_ref_dir/$ref_file_name"
+  ln -sf "$(realpath "$ref_file")" "$irap_ref_dir/$ref_file_name"
   if tar tf "$gtf" 2> /dev/null 1>&2
   then
     tar xzf "$gtf" --directory "$irap_ref_dir/"
   else
     gtf_file_name="$(basename "$gtf")"
-    ln -s "$(realpath "$gtf")" "$irap_ref_dir/$gtf_file_name"
+    ln -sf "$(realpath "$gtf")" "$irap_ref_dir/$gtf_file_name"
   fi
 
   # the raw file dir
@@ -45,11 +45,11 @@ function prepare_input_dir {
   for raw_read_file in "${raw_read_files[@]}"
   do
     raw_read_file_name="$(basename "$raw_read_file")"
-    ln -s "$(realpath "$raw_read_file")" "$irap_raw_data_dir/$raw_read_file_name"
+    ln -sf "$(realpath "$raw_read_file")" "$irap_raw_data_dir/$raw_read_file_name"
     # required path by recent version
-    ln -s "$(realpath "$raw_read_file")" "$exp_name/$raw_read_file_name"
+    ln -sf "$(realpath "$raw_read_file")" "$exp_name/$raw_read_file_name"
     # required when optiton atlas_run is selected
-    ln -s "$(realpath "$raw_read_file")" "$irap_raw_bam_dir/$raw_read_file_name"
+    ln -sf "$(realpath "$raw_read_file")" "$irap_raw_bam_dir/$raw_read_file_name"
   done
 }
 
@@ -166,7 +166,20 @@ fi
 # start irap
 set +u  # IRAP_PARA could be un-defined
 REF_FILE_NAME="$(basename "$REF")"
-irap "conf=$CONFIG_FILE" "species=$SPECIES" "reference=$REF_FILE_NAME" "gtf_file=$GTF_FILE" "name=$EXP_NAME" "data_dir=$DATA_DIR_NAME" "${IRAP_PARA[@]}" 1> >(tee -a $EXP_NAME.log) 2> >(tee -a $EXP_NAME.err >&2)
+
+cat >$CONFIG_FILE <<EOF
+species=$SPECIES
+reference=$REF_FILE_NAME
+gtf_file=$GTF_FILE
+name=$EXP_NAME
+data_dir=$DATA_DIR_NAME
+EOF
+
+for opt_prm in "${IRAP_PARA[@]}"; do
+    echo $opt_prm >> $CONFIG_FILE
+done
+
+xvfb-run irap conf=$CONFIG_FILE 1> >(tee -a $EXP_NAME.log) 2> >(tee -a $EXP_NAME.err >&2)
 
 set -u
 # following lines were added for Dockstore
