@@ -1,5 +1,7 @@
-##CHANGES
+## CHANGES
 
+### 0.1.10
+* updated CWL file metadata schema IRI
 ### 0.1.9
 * modified wrapper to cleanup instance after archiving to avoid no space letf issue when same instance is used by WR
 * added few custom amendements to qc_stats and wrapper script

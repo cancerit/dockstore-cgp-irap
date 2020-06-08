@@ -6,7 +6,7 @@ $namespaces:
   s: http://schema.org/
 
 $schemas:
-- http://schema.org/docs/schema_org_rdfa.html
+- https://schema.org/version/latest/schema.rdf
 - http://dublincore.org/2012/06/14/dcterms.rdf
 - http://xmlns.com/foaf/spec/20140114.rdf
 
@@ -30,7 +30,7 @@ dct:creator:
 
 requirements:
   - class: DockerRequirement
-    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.9"
+    dockerPull: "quay.io/wtsicgp/dockstore-cgp-irap:0.1.10"
 
 hints:
   - class: ResourceRequirement
